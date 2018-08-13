@@ -20,9 +20,18 @@ var (
 	ListeningPort = "8080"
 )
 
-func loggerServer(h http.Handler) http.Handler {
+func logging() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer logger.Println("Request " + r.URL.String() + " answered")
+			logger.Println(r.RemoteAddr + " requested " + r.URL.String())
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+func checkForPron(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Println(r.RemoteAddr + " requested " + r.URL.String())
+		logger.Println("CheckingforPron")
 		if strings.Contains(r.URL.String(), "pron") {
 			w.WriteHeader(404)
 			fmt.Fprintln(w, "You will not find pron here!")
@@ -32,21 +41,45 @@ func loggerServer(h http.Handler) http.Handler {
 	})
 }
 
+//If we didn't want to dynamically call the next handler we could:
+//Don't forget to set server.Handler to : checkForPron(router)
+//func logging(h http.Handler) http.Handler {
+//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		defer logger.Println("Request " + r.URL.String() + " answered")
+//		logger.Println(r.RemoteAddr + " requested " + r.URL.String())
+//		h.ServeHTTP(w, r)
+//	})
+//}
+//
+//func checkForPron(h http.Handler) http.Handler {
+//	checkforpron := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		logger.Println("CheckingforPron")
+//		if strings.Contains(r.URL.String(), "pron") {
+//			w.WriteHeader(404)
+//			fmt.Fprintln(w, "You will not find pron here!")
+//			return
+//		}
+//		h.ServeHTTP(w, r)
+//	})
+//	return logging(checkforpron)
+//}
+
 func main() {
 	logger.Println("Server is starting...")
 	//Set up all the routing we need
 	router := http.NewServeMux()
-	router.Handle("/", http.HandlerFunc(helloWorldServer))
+	router.HandleFunc("/", helloWorldServer)
 	fs := http.FileServer(http.Dir("helloWorldHttp/public/"))
 	router.Handle("/favicon.ico", fs)
 	//Adding our Middleware
-	h1 := loggerServer(router)
+	//h1 := logging(router)
+	//hhs := checkForPron()(h1)
 
 	//Defining custom attributes for the server
 	//If we wanted the default ones we could go with http.ListenAndServe(":"+ListeningPort,h1)
 	server := &http.Server{
 		Addr:         ":" + ListeningPort,
-		Handler:      h1,
+		Handler:      logging()(checkForPron(router)),
 		ErrorLog:     logger,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
