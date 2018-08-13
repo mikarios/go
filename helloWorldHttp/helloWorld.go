@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 )
 
 func helloWorldServer(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World")
+	fmt.Fprintln(w, "The page you requested ("+r.URL.Path[1:]+") says Hello!")
 }
 
 var (
@@ -22,6 +23,11 @@ var (
 func loggerServer(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger.Println(r.RemoteAddr + " requested " + r.URL.String())
+		if strings.Contains(r.URL.String(), "pron") {
+			w.WriteHeader(404)
+			fmt.Fprintln(w, "You will not find pron here!")
+			return
+		}
 		h.ServeHTTP(w, r)
 	})
 }
