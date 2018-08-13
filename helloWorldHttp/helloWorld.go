@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-func helloWorldServer(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "The page you requested ("+r.URL.Path[1:]+") says Hello!")
-}
-
 var (
 	logger        = log.New(os.Stdout, "http: ", log.LstdFlags)
 	ListeningPort = "8080"
 )
+
+func helloWorldServer(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "The page you requested ("+r.URL.Path[1:]+") says Hello!")
+}
 
 func logging() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
