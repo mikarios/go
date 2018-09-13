@@ -1,6 +1,7 @@
 # helloWorldHttp
 A simple http server for me to remember the capabilities.
 Variables:
+
 * ListeningPort
 * Username
 * Password
@@ -8,6 +9,7 @@ Variables:
 * UsernameHeadParam
 * PasswordQueryParam
 * PasswordHeadParam
+
 can be set on compilation:
 ```Bash
 go build -ldflags "-X main.Username=newUsername -X main.Password=newPassword -X ListeningPort=80 -X main.UsernameQueryParam=u -X main.UsernameHeadParam=u -X main.PasswordQueryParam=p -X main.PasswordHeadParam=p" helloWorld.go
